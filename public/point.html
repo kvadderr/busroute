@@ -1,0 +1,136 @@
+<html>
+    <head>
+        <title>ИС Расписание ОТ</title>
+        <!-- UIkit CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/css/uikit.min.css" />
+
+        <!-- UIkit JS -->
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit-icons.min.js"></script>
+      
+    </head>
+
+    <body class="uk-background-muted uk-padding">
+
+        <div class="uk-section">
+            <div class="uk-container uk-container-small uk-card-default">
+                <div class="uk-padding uk-section">
+                    <div class="uk-container">
+                        <ul class="uk-breadcrumb">
+                            <li><a href="index.html">Главная</a></li>
+                            <li><span>Остановки</span></li>
+                        </ul>
+                        
+
+                        <div class="uk-container">
+
+                            <div class="uk-margin">
+                                <select class="uk-select" id="citySelect" onchange="loadPoint()">
+                                </select>
+                            </div>
+
+
+                            <div class="uk-margin">
+                                <input class="uk-input  uk-width-1-2" type="text" id="newCityInput" placeholder="Введите название остановки">
+                                <input class="uk-input  uk-width-1-5" type="text" id="newCityLatInput" placeholder="Ширина">
+                                <input class="uk-input  uk-width-1-4" type="text" id="newCityLngInput" placeholder="Долгота">
+                            </div>
+                            <button onclick="newPoint()" class="uk-button uk-button-primary">Добавить новую остановку</button>
+                            <table class="uk-table uk-table-striped" id="myTable">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Ширина</th>
+                                        <th>Долгота</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockTableBody">
+                                    
+                                </tbody>
+                            </table>
+                           
+                        </div>
+
+                    </div>
+                </div>        
+                
+
+            </div>
+            
+        </div>
+    </body>
+
+    <script>
+
+        const url = new URL("http://95.213.224.23:4000/api/");
+        const citySelect = document.getElementById("citySelect");
+        const newCityInput = document.getElementById("newCityInput");
+        const newCityLatInput = document.getElementById("newCityLatInput");
+        const newCityLngInput = document.getElementById("newCityLngInput");
+        const table = document.getElementById("stockTableBody");
+        
+        loadAllCity();
+
+        function loadAllCity(){
+
+
+            citySelect.innerHTML = "";
+
+            fetch(url + "city").then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        let option = document.createElement("option");
+                        option.setAttribute("value", data[i].id_city)
+                        option.innerHTML += data[i].name;
+                        citySelect.appendChild(option);
+                        
+                    };
+                    citySelect.selectedIndex = 0;      
+                });
+            }).finally(() => {
+               
+                console.log(citySelect.selectedIndex);
+            } );
+        };
+
+        function loadPoint(){
+            table.innerHTML="";
+            fetch(url + "city/point/"+citySelect.value).then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        var json = JSON.stringify(data[i]);
+                        let tr = document.createElement("tr");
+                        tr.innerHTML += "<td>"  + data[i].name + "</td><td>"
+                            +data[i].lat +"</td><td>"
+                            +data[i].lng+"</td>"
+                        table.appendChild(tr);
+                    }      
+                });
+            });
+
+        }
+
+        function newPoint(){
+            var data = {
+                name: newCityInput.value,
+                lat:newCityLatInput.value,
+                lng:newCityLngInput.value,
+                id_city:citySelect.value
+            };
+
+            fetch (url + 'city/point', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+            });
+
+            loadPoint(); 
+        }
+
+    
+    </script>
+
+
+</html>

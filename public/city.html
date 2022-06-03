@@ -1,0 +1,138 @@
+<html>
+    <head>
+        <title>ИС Расписание ОТ</title>
+        <!-- UIkit CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/css/uikit.min.css" />
+
+        <!-- UIkit JS -->
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit-icons.min.js"></script>
+      
+    </head>
+
+    <body class="uk-background-muted uk-padding">
+
+        <div class="uk-section">
+            <div class="uk-container uk-container-small uk-card-default">
+                <div class="uk-padding uk-section">
+                    <div class="uk-container">
+                        
+
+                        <ul class="uk-breadcrumb">
+                            <li><a href="index.html">Главная</a></li>
+                            <li><span>Города</span></li>
+                        </ul>
+
+                        <br><br>
+
+
+                        <div class="uk-container">
+                            <div class="uk-margin">
+                                <input class="uk-input  uk-width-1-2" type="text" id="newCityInput" placeholder="Введите название города">
+                                <input class="uk-input  uk-width-1-5" type="text" id="newCityLatInput" placeholder="Ширина">
+                                <input class="uk-input  uk-width-1-5" type="text" id="newCityLngInput" placeholder="Долгота">
+                            </div>
+
+                            <button onclick="newCity()" class="uk-button uk-button-primary">Добавить новый город</button>
+
+                            <div class="uk-margin">
+                                <select class="uk-select" id="citySelect" onchange="loadOneCity()">
+                                </select>
+                            </div>
+
+                            <div class="uk-margin">
+                                <input class="uk-input uk-width-1-2" type="text" id="updatedCityInput" placeholder="Введите название города">
+                                <input class="uk-input  uk-width-1-5" type="text" id="updatedCityLatInput" placeholder="Ширина">
+                                <input class="uk-input  uk-width-1-5" type="text" id="updatedCityLngInput" placeholder="Долгота">
+                            </div>
+
+                            <button class="uk-button uk-button-primary">Обновить</button>
+                            <button onclick="deleteCity()" class="uk-button uk-button-danger">Удалить</button>
+
+                        </div>
+
+                    </div>
+                </div>        
+                
+
+            </div>
+            
+        </div>
+        
+    </body>
+    <script>
+
+        const url = new URL("http://95.213.224.23:4000/api/");
+        const newCityInput = document.getElementById("newCityInput");
+        const newCityLatInput = document.getElementById("newCityLatInput");
+        const newCityLngInput = document.getElementById("newCityLngInput");
+        const citySelect = document.getElementById("citySelect");
+        const updatedCityInput = document.getElementById("updatedCityInput");
+        const updatedCityLatInput = document.getElementById("updatedCityLatInput");
+        const updatedCityLngInput = document.getElementById("updatedCityLngInput");
+
+        loadAllCity();
+
+        function loadAllCity(){
+
+
+            while(citySelect.firstChild){
+                citySelect.removeChild(citySelect.firstChild)
+            }
+
+            fetch(url + "city").then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        let option = document.createElement("option");
+                        option.setAttribute("value", data[i].id_city)
+                        option.innerHTML += data[i].name;
+                        citySelect.appendChild(option);
+                    }      
+                });
+            });
+        };
+
+        function loadOneCity(){
+            fetch(url + "city/"+citySelect.value).then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        updatedCityInput.value = data[i].name;
+                        updatedCityLatInput.value = data[i].lat;
+                        updatedCityLngInput.value = data[i].lng;
+                    }      
+                });
+            });
+        };
+
+        function deleteCity(){
+            fetch (url + 'city/'+citySelect.value, {
+                        method: 'DELETE'
+            });
+            loadAllCity();
+        }
+
+        function newCity(){
+    
+            var data = {
+                name: newCityInput.value,
+                lat:newCityLatInput.value,
+                lng:newCityLngInput.value
+            };
+
+            fetch (url + 'city', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+            });
+
+            loadAllCity();  
+        };
+
+        
+
+
+    </script>
+
+</html>

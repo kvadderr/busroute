@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <title>ИС Расписание ОТ</title>
+        <!-- UIkit CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/css/uikit.min.css" />
+
+        <!-- UIkit JS -->
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit-icons.min.js"></script>
+      
+    </head>
+
+    <body class="uk-background-muted uk-padding">
+
+        <div class="uk-section">
+            <div class="uk-container uk-container-small uk-card-default">
+                <div class="uk-padding uk-section">
+                    <div class="uk-container">
+                        <ul class="uk-breadcrumb">
+                            <li><a href="index.html">Главная</a></li>
+                            <li><span>Маршруты</span></li>
+                        </ul>
+                        
+
+                        <div class="uk-container">
+
+                            <div class="uk-margin">
+                                <select class="uk-select" id="citySelect" onchange="loadRoute()">
+                                </select>
+                            </div>
+
+
+                            <div class="uk-margin">
+                                <input class="uk-input" type="text" id="newRouteInput" placeholder="Введите название маршрута">
+                            </div>
+                            <button onclick="newRoute()" class="uk-button uk-button-primary">Добавить новый маршрут</button>
+                            <table class="uk-table uk-table-striped" id="routeTable">
+                                <thead>
+                                    <tr>
+                                        <th>Название маршрута</th>
+                                        <th>Транспорт</th>
+                                        <th>Остановки</th>
+                                        <th>Расписание</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="routeTableBody">
+                                    
+                                </tbody>
+                            </table>
+                           
+                        </div>
+
+                    </div>
+                </div>        
+                
+
+            </div>
+            
+        </div>
+    </body>
+
+    <script>
+
+        const url = new URL("http://95.213.224.23:4000/api/");
+        const citySelect = document.getElementById("citySelect");
+        const newRouteInput = document.getElementById("newRouteInput");
+        const table = document.getElementById("routeTableBody");
+        
+        loadAllCity();
+
+        function loadAllCity(){
+
+
+            citySelect.innerHTML = "";
+
+            fetch(url + "city").then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        let option = document.createElement("option");
+                        option.setAttribute("value", data[i].id_city)
+                        option.innerHTML += data[i].name;
+                        citySelect.appendChild(option);
+                    }      
+                });
+            });
+        };
+
+        function loadRoute(){
+            table.innerHTML="";
+            fetch(url + "route/id_city/"+citySelect.value).then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        var json = JSON.stringify(data[i]);
+                        let tr = document.createElement("tr");
+                        tr.innerHTML += "<td>"  + data[i].name + "</td>"+
+                        "<td><a href='addTransport.html?id="  + data[i].id_route + "'>Добавить транспорт</a></td>"+
+                        "<td><a href='addPoint.html?id="  + data[i].id_route + "&id_city="  + citySelect.value + "'>Добавить остановку</a></td>"+
+                        "<td><a href='addTime.html?id="  + data[i].id_route + "'>Добавить расписание</a></td>";
+                        table.appendChild(tr);
+                    }      
+                });
+            });
+
+        }
+
+        function newRoute(){
+            var data = {
+                name: newRouteInput.value,
+                id_city:citySelect.value
+            };
+
+            fetch (url + 'route', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+            });
+
+            loadRoute(); 
+        }
+
+    
+    </script>
+
+
+</html>

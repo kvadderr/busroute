@@ -1,0 +1,162 @@
+<html>
+    <head>
+        <title>ИС Расписание ОТ</title>
+        <!-- UIkit CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/css/uikit.min.css" />
+
+        <!-- UIkit JS -->
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/uikit@3.13.1/dist/js/uikit-icons.min.js"></script>
+      
+    </head>
+
+    <body class="uk-background-muted uk-padding">
+
+        <div class="uk-section">
+            <div class="uk-container uk-container-small uk-card-default">
+                <div class="uk-padding uk-section">
+                    <div class="uk-container">
+                        <ul class="uk-breadcrumb">
+                            <li><a href="index.html">Главная</a></li>
+                            <li><a href="route.html">Маршруты</a></li>
+                            <li><span>Добавление расписания</span></li>
+                        </ul>
+                        
+
+                        <div class="uk-container">
+
+                            <div class="uk-margin">
+                                <select class="uk-select" id="transportSelect">
+                                </select>
+                            </div>
+
+                            <div class="uk-margin">
+                                <select class="uk-select" id="pointSelect">
+                                </select>
+                            </div>
+
+                            <div class="uk-margin">
+                                <input class="uk-input" type="text" id="newRouteInput" placeholder="00:00">
+                            </div>
+
+                            <button onclick="newRoute()" class="uk-button uk-button-primary">Добавить новую остановку</button>
+                            <table class="uk-table uk-table-striped" id="routeTable">
+                                <thead>
+                                    <tr>
+                                        <th>Название остановки</th>
+                                        <th>Номер транспорта</th>
+                                        <th>Время прибытия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="routeTableBody">
+                                    
+                                </tbody>
+                            </table>
+                           
+                        </div>
+
+                    </div>
+                </div>        
+                
+
+            </div>
+            
+        </div>
+    </body>
+
+    <script>
+
+        const url = new URL("http://95.213.224.23:4000/api/");
+        const transportSelect = document.getElementById("transportSelect");
+        const pointSelect = document.getElementById("pointSelect");
+        const newRouteInput = document.getElementById("newRouteInput");
+        const table = document.getElementById("routeTableBody");
+        const id = getUrlVars()["id"];
+
+        loadAllPoint();
+        loadAllTransport();
+        loadRoute();
+
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,    
+            function(m,key,value) {
+            vars[key] = value;
+            });
+            return vars;
+        }
+
+        function loadAllPoint(){
+            
+            pointSelect.innerHTML = "";
+
+            fetch(url + "route/point_route/"+id).then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        let option = document.createElement("option");
+                        option.setAttribute("value", data[i].id_point)
+                        option.innerHTML += data[i].name;
+                        pointSelect.appendChild(option);
+                    }      
+                });
+            });
+        };
+
+        function loadAllTransport(){
+            
+            transportSelect.innerHTML = "";
+
+            fetch(url + "route/transport/"+id).then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        let option = document.createElement("option");
+                        option.setAttribute("value", data[i].id_transport)
+                        option.innerHTML += data[i].number;
+                        transportSelect.appendChild(option);
+                    }      
+                });
+            });
+        };
+
+        function loadRoute(){
+            table.innerHTML="";
+            fetch(url + "route/time/"+id).then(function(response) {
+                response.json().then(function(data) {
+                    for (var i=0; i<data.length; i++){
+                        var json = JSON.stringify(data[i]);
+                        let tr = document.createElement("tr");
+                        tr.innerHTML += "<td>"  + data[i].name + "</td>"+
+                                        "<td>"  + data[i].number + "</td>"+
+                                        "<td>"  + data[i].time + "</td>";
+                        table.appendChild(tr);
+                    }      
+                });
+            });
+
+        }
+
+        function newRoute(){
+            var data = {
+                id_transport: transportSelect.value,
+                id_point: pointSelect.value,
+                time: newRouteInput.value
+            };
+
+            console.log(transportSelect.value);
+
+            fetch (url + 'route/time', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+            });
+
+            loadRoute(); 
+        }
+
+    
+    </script>
+
+
+</html>
